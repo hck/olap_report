@@ -13,6 +13,7 @@ class Fact < ActiveRecord::Base
   measures_for :score, [:avg, :sum]
 
   measure :score
+  measure :score_count, :count, column: :score
 
   def self.prepare_table
     connection.execute("DROP TABLE IF EXISTS #{table_name}")

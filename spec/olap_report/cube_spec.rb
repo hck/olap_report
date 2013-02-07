@@ -24,6 +24,7 @@ describe OlapReport::Cube do
 
       measure :score
       measures_for :views, [:sum, :avg]
+      measure :purchases, :count, column: :purchase_id
     end
   end
 
@@ -46,6 +47,7 @@ describe OlapReport::Cube do
 
   it "#measure defines valid measure" do
     Foo.measures[:score].should == OlapReport::Cube::Measure.new(:score)
+    Foo.measures[:purchases].should == OlapReport::Cube::Measure.new(:purchases, :count, column: :purchase_id)
   end
 
   it "#measures_for defines valid measures for column" do
@@ -65,10 +67,11 @@ describe OlapReport::Cube do
     end
 
     it "should fetch specified dimension & measure" do
-      expected = Fact.select('`users`.`group_id`, SUM(`facts`.`score`) group_score').joins(:user).group('`users`.`group_id`')
+      expected = Fact.select('`users`.`group_id`, SUM(`facts`.`score`) group_score, COUNT(`facts`.`score`) score_count').joins(:user).group('`users`.`group_id`')
 
       Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:score_sum).should == expected.map(&:group_score)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:group_id).should == expected.map(&:group_id)
+      Fact.projection(dimensions: {user: :group_id}, measures: [:score_count]).map(&:score_count).should == expected.map(&:score_count)
     end
 
     it "calculates correct average" do

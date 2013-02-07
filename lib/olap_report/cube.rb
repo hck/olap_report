@@ -47,7 +47,7 @@ module OlapReport
 
       relation = options[:measures].inject(relation) do |res,msr|
         measure = measures[msr]
-        res.select function(measure.function, measure.name)
+        res.select function(measure.function, measure.column)
       end if options[:measures]
 
       relation
