@@ -42,9 +42,9 @@ describe OlapReport::Cube do
   end
 
   describe "::projection" do
-    #before(:each) do
-    #  @facts = FactoryGirl.create_list(:fact, 10)
-    #end
+    before(:each) do
+      @facts = FactoryGirl.create_list(:fact, 10)
+    end
 
     it "should fetch dimension grouped by self" do
       Fact.projection(cube: {user: :user_id}).should == Fact.select('`facts`.`user_id`').group('`facts`.`user_id`')
@@ -52,9 +52,10 @@ describe OlapReport::Cube do
     end
 
     it "should fetch specified dimension & measure" do
-      # @TODO: complete this spec
-      pending
-      Fact.projection(cube: {user: :group}, measures: [:score]).should == true
+      expected = Fact.select('`users`.`group`, SUM(`facts`.`score`) group_score').joins(:user).group('`users`.`group`')
+
+      Fact.projection(cube: {user: :group}, measures: [:score]).map(&:score_sum).should == expected.map(&:group_score)
+      Fact.projection(cube: {user: :group}, measures: [:score]).map(&:group).should == expected.map(&:group)
     end
   end
 end

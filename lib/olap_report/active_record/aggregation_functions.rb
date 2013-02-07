@@ -1,9 +1,7 @@
 module OlapReport
   module ActiveRecord::AggregationFunctions
-    FUNCTIONS = [:sum, :avg, :min, :max, :count]
-
-    def method_missing(name, *args)
-
+    def function(name, column, column_alias=nil)
+      "#{name.upcase}(#{column_name_with_table(column)}) AS #{column_name(column_alias || "#{column}_#{name}")}".strip
     end
   end
 end

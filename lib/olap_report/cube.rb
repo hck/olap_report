@@ -1,5 +1,8 @@
 module OlapReport
   module Cube
+    include OlapReport::ActiveRecord::AggregationFunctions
+    include OlapReport::ActiveRecord::Helpers
+
     def self.included(base)
       #raise ArgumentError, "#{base.name} should be descendant from ActiveRecord::Base" unless base.is_a?(ActiveRecord::Base)
 
@@ -38,22 +41,13 @@ module OlapReport
 
       relation = options[:measures].inject(relation) do |res,msr|
         measure = measures[msr]
-        p measure.build_select
-        res.select(measure.build_select)
+        res.select function(measure.function, measure.name)
       end if options[:measures]
 
       relation
     end
 
     private
-    def column_name_with_table(name, table_name=self.table_name)
-      [connection.quote_table_name(table_name), connection.quote_column_name(name)].join('.')
-    end
-
-    def join_table_name(level)
-      reflect_on_association(level.joins).klass.table_name
-    end
-
     def build_select(level)
       level.joins ? column_name_with_table(level.name, join_table_name(level)) : column_name_with_table(level.name)
     end
