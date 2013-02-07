@@ -25,6 +25,12 @@ module OlapReport
       @measures[name] = Measure.new(name, function, options)
     end
 
+    def measures_for(column, functions)
+      functions.each do |function|
+        measure "#{column}_#{function}".to_sym, function, column: column
+      end
+    end
+
     def measures
       @measures
     end

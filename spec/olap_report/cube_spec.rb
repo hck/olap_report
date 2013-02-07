@@ -21,6 +21,9 @@ describe OlapReport::Cube do
         d.level :month
         d.level :year
       end
+
+      measure :score
+      measures_for :views, [:sum, :avg]
     end
   end
 
@@ -41,6 +44,15 @@ describe OlapReport::Cube do
     end
   end
 
+  it "#measure defines valid measure" do
+    Foo.measures[:score].should == OlapReport::Cube::Measure.new(:score)
+  end
+
+  it "#measures_for defines valid measures for column" do
+    Foo.measures[:views_sum].should == OlapReport::Cube::Measure.new(:views_sum, :sum, column: :views)
+    Foo.measures[:views_avg].should == OlapReport::Cube::Measure.new(:views_avg, :avg, column: :views)
+  end
+
   describe "::projection" do
     before(:each) do
       @facts = FactoryGirl.create_list(:fact, 10)
@@ -56,6 +68,10 @@ describe OlapReport::Cube do
 
       Fact.projection(cube: {user: :group}, measures: [:score]).map(&:score_sum).should == expected.map(&:group_score)
       Fact.projection(cube: {user: :group}, measures: [:score]).map(&:group).should == expected.map(&:group)
+    end
+
+    it "calculates correct average" do
+      Fact.projection(cube: {user: :group}, measures: [:score])
     end
   end
 end

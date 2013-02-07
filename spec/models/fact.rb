@@ -9,6 +9,8 @@ class Fact < ActiveRecord::Base
     #d.level :date
   end
 
+  measures_for :score, [:avg, :sum]
+
   measure :score
 
   def self.prepare_table
