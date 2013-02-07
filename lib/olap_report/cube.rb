@@ -4,8 +4,7 @@ module OlapReport
     include OlapReport::ActiveRecord::Helpers
 
     def self.included(base)
-      #raise ArgumentError, "#{base.name} should be descendant from ActiveRecord::Base" unless base.is_a?(ActiveRecord::Base)
-
+      raise ArgumentError, "#{base.name} should be descendant from ActiveRecord::Base" unless base.ancestors.include?(::ActiveRecord::Base)
       base.extend self
       base.instance_variable_set(:@dimensions, {})
       base.instance_variable_set(:@measures, {})

@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe OlapReport::Cube do
   before(:each) do
-    class Foo
+    class Foo < ActiveRecord::Base
       include OlapReport::Cube
 
       #class Reviews < ActiveRecord::Base
@@ -26,6 +26,14 @@ describe OlapReport::Cube do
       measures_for :views, [:sum, :avg]
       measure :purchases, :count, column: :purchase_id
     end
+  end
+
+  it "should raise error if it isn't inheritor of ActiveRecord::Base" do
+    expect do
+      class Bar
+        include OlapReport::Cube
+      end
+    end.to raise_error(ArgumentError)
   end
 
   it "should respond to dimensions method" do
