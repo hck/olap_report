@@ -36,7 +36,7 @@ module OlapReport
     end
 
     def projection(options)
-      relation = options[:cube].inject(self) do |res,(dim,lvl)|
+      relation = options[:dimensions].inject(self) do |res,(dim,lvl)|
         dimension = dimensions[dim]
         level = dimension.levels[lvl]
         res = res.select build_select(level)
@@ -55,12 +55,12 @@ module OlapReport
 
     private
     def build_select(level)
-      level.joins ? column_name_with_table(level.name, join_table_name(level)) : column_name_with_table(level.name)
+      level.joins ? column_name_with_table(level.name, join_table_name(level.joins)) : column_name_with_table(level.name)
     end
 
     def build_group_by(level)
       if level.group_by.is_a?(Symbol)
-        level.joins ? column_name_with_table(level.group_by, join_table_name(level)) : column_name_with_table(level.group_by)
+        level.joins ? column_name_with_table(level.group_by, join_table_name(level.joins)) : column_name_with_table(level.group_by)
       else
         group_by
       end

@@ -25,7 +25,7 @@ RSpec.configure do |config|
   config.color_enabled = true
 
   config.before(:suite) do
-    [Fact, User].each(&:prepare_table)
+    [Fact, User, Group].each(&:prepare_table)
 
     active_record = DatabaseCleaner[:active_record]
     active_record.strategy = :truncation

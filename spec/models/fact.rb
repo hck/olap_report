@@ -5,7 +5,8 @@ class Fact < ActiveRecord::Base
 
   dimension :user do |d|
     d.level :user_id
-    d.level :group, joins: :user
+    d.level :group_id, joins: :user
+    d.level :category, joins: {user: :group}
     #d.level :date
   end
 

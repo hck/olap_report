@@ -59,19 +59,20 @@ describe OlapReport::Cube do
     end
 
     it "should fetch dimension grouped by self" do
-      Fact.projection(cube: {user: :user_id}).should == Fact.select('`facts`.`user_id`').group('`facts`.`user_id`')
-      Fact.projection(cube: {user: :group}).should == Fact.select('`users`.`group`').joins(:user).group('`users`.`group`')
+      Fact.projection(dimensions: {user: :user_id}).should == Fact.select('`facts`.`user_id`').group('`facts`.`user_id`')
+      Fact.projection(dimensions: {user: :group_id}).should == Fact.select('`users`.`group_id`').joins(:user).group('`users`.`group_id`')
+      Fact.projection(dimensions: {user: :category}).should == Fact.select('`groups`.`category`').joins(user: :group).group('`groups`.`category`')
     end
 
     it "should fetch specified dimension & measure" do
-      expected = Fact.select('`users`.`group`, SUM(`facts`.`score`) group_score').joins(:user).group('`users`.`group`')
+      expected = Fact.select('`users`.`group_id`, SUM(`facts`.`score`) group_score').joins(:user).group('`users`.`group_id`')
 
-      Fact.projection(cube: {user: :group}, measures: [:score]).map(&:score_sum).should == expected.map(&:group_score)
-      Fact.projection(cube: {user: :group}, measures: [:score]).map(&:group).should == expected.map(&:group)
+      Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:score_sum).should == expected.map(&:group_score)
+      Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:group_id).should == expected.map(&:group_id)
     end
 
     it "calculates correct average" do
-      Fact.projection(cube: {user: :group}, measures: [:score])
+      Fact.projection(dimensions: {user: :group_id}, measures: [:score])
     end
   end
 end
