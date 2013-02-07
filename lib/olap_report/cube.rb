@@ -1,17 +1,20 @@
 module OlapReport
   module Cube
-    include OlapReport::ActiveRecord::AggregationFunctions
-    include OlapReport::ActiveRecord::Helpers
-
     def self.included(base)
       raise ArgumentError, "#{base.name} should be descendant from ActiveRecord::Base" unless base.ancestors.include?(::ActiveRecord::Base)
-      base.extend self
+
+      base.extend ClassMethods
       base.instance_variable_set(:@dimensions, {})
       base.instance_variable_set(:@measures, {})
     end
+  end
+
+  module ClassMethods
+    include OlapReport::ActiveRecord::AggregationFunctions
+    include OlapReport::ActiveRecord::Helpers
 
     def dimension(name, options = {})
-      dimension = Dimension.new(name, options)
+      dimension = OlapReport::Cube::Dimension.new(name, options)
       yield dimension if block_given?
       @dimensions[name] = dimension
     end
@@ -21,7 +24,7 @@ module OlapReport
     end
 
     def measure(name, function = :sum, options= {})
-      @measures[name] = Measure.new(name, function, options)
+      @measures[name] = OlapReport::Cube::Measure.new(name, function, options)
     end
 
     def measures_for(column, functions)
