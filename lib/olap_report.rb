@@ -9,6 +9,8 @@ require "olap_report/cube/dimension"
 require "olap_report/cube/level"
 require "olap_report/cube/measure"
 
+require "olap_report/report"
+
 module OlapReport
   # Your code goes here...
 end

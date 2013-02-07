@@ -69,7 +69,7 @@ describe OlapReport::Cube do
     it "should fetch specified dimension & measure" do
       expected = Fact.select('`users`.`group_id`, SUM(`facts`.`score`) group_score, COUNT(`facts`.`score`) score_count').joins(:user).group('`users`.`group_id`')
 
-      Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:score_sum).should == expected.map(&:group_score)
+      Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:score).should == expected.map(&:group_score)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score]).map(&:group_id).should == expected.map(&:group_id)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_count]).map(&:score_count).should == expected.map(&:score_count)
     end
