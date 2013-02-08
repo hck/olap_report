@@ -10,10 +10,16 @@ class Fact < ActiveRecord::Base
     #d.level :date
   end
 
+  dimension :date do |d|
+    d.level :created_at
+  end
+
   measures_for :score, [:avg, :sum]
 
-  measure :score
   measure :score_count, :count, column: :score
+
+  aggregation user: [:user_id, :category]
+  aggregation user: :group_id
 
   def self.prepare_table
     connection.execute("DROP TABLE IF EXISTS #{table_name}")

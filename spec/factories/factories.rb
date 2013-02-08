@@ -5,7 +5,7 @@ FactoryGirl.define do
 
   factory :user do
     sequence(:name){|n| "user_#{n}"}
-    group { FactoryGirl.create_list(:group, 3).sample }
+    group
     registered_at { rand((Date.today << 6)..Date.today) }
   end
 
