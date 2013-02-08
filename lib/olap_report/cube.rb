@@ -54,12 +54,14 @@ module OlapReport
 
     private
     def build_select(level)
-      level.joins ? column_name_with_table(level.name, join_table_name(level.joins)) : column_name_with_table(level.name)
+      params = level.joins ? [level.name, join_table_name(level.joins)] : level.name
+      column_name_with_table(*params)
     end
 
     def build_group_by(level)
       if level.group_by.is_a?(Symbol)
-        level.joins ? column_name_with_table(level.group_by, join_table_name(level.joins)) : column_name_with_table(level.group_by)
+        params = level.joins ? [level.group_by, join_table_name(level.joins)] : level.group_by
+        column_name_with_table(*params)
       else
         group_by
       end
