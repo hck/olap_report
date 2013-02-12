@@ -10,5 +10,4 @@ describe OlapReport::Cube do
     end.to raise_error(ArgumentError)
   end
 
-
 end

@@ -8,7 +8,7 @@ require 'factory_girl'
 require 'olap_report'
 
 MODELS = File.join(File.dirname(__FILE__), 'models')
-Dir["#{MODELS}/*.rb"].each { |f| require f }
+Dir["#{MODELS}/**/*.rb"].each { |f| require f }
 
 ActiveRecord::Base.establish_connection(
   adapter: "mysql2",

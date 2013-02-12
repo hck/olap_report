@@ -1,13 +1,15 @@
 module OlapReport
   class Cube::Dimension
-    attr_reader :name, :levels, :options
+    attr_reader :model, :name, :levels, :options
 
-    def initialize(name, options = {})
-      @name, @options, @levels = name, options, {}
+    private :model
+
+    def initialize(model, name, options = {})
+      @model, @name, @options, @levels = model, name, options, {}
     end
 
     def level(name, options = {})
-      @levels[name] = Cube::Level.new(name, options)
+      @levels[name] = Cube::Level.new(self, name, options)
     end
   end
 end

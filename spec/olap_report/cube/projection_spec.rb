@@ -1,33 +1,6 @@
 require 'spec_helper'
 
 describe OlapReport::Cube::Projection do
-  # before(:each) do
-  #   class Foo < ActiveRecord::Base
-  #     include OlapReport::Cube
-
-  #     #class Reviews < ActiveRecord::Base
-  #     #  include OlapReport::Cube
-  #     #
-  #     #  dimension :product do |d|
-  #     #    d.level :product_id
-  #     #    d.level :product_type_id, joins: :products
-  #     #    d.level :product_group_id, joins: :products
-  #     #  end
-  #     #end
-
-  #     dimension :product
-  #     dimension :date do |d|
-  #       d.level :day, joins: :days, group_by: 'DATE_FORMAT('', date)'
-  #       d.level :month
-  #       d.level :year
-  #     end
-
-  #     measure :score
-  #     measures_for :views, [:sum, :avg]
-  #     measure :purchases, :count, column: :purchase_id
-  #   end
-  # end
-
   it "should respond to dimensions method" do
     Fact.should respond_to(:dimensions)
   end
@@ -45,13 +18,17 @@ describe OlapReport::Cube::Projection do
     end
   end
 
-  it "#measure defines valid measure" do
-    Fact.measures[:score_count].should == OlapReport::Cube::Measure.new(:score_count, :count, column: :score)
+  describe "::measure" do
+    it "should define valid measure" do
+      Fact.measures[:score_count].should == OlapReport::Cube::Measure.new(Fact, :score_count, :count, column: :score)
+    end
   end
 
-  it "#measures_for defines valid measures for column" do
-    Fact.measures[:score_sum].should == OlapReport::Cube::Measure.new(:score_sum, :sum, column: :score)
-    Fact.measures[:score_avg].should == OlapReport::Cube::Measure.new(:score_avg, :avg, column: :score)
+  describe "::measures_for" do
+    it "should define valid measures for column" do
+      Fact.measures[:score_sum].should == OlapReport::Cube::Measure.new(Fact, :score_sum, :sum, column: :score)
+      Fact.measures[:score_avg].should == OlapReport::Cube::Measure.new(Fact, :score_avg, :avg, column: :score)
+    end
   end
 
   describe "::projection" do
@@ -67,17 +44,14 @@ describe OlapReport::Cube::Projection do
 
     it "should fetch specified dimension & measure" do
       expected = Fact.select('`users`.`group_id`, SUM(`facts`.`score`) group_score, COUNT(`facts`.`score`) score_count').joins(:user).group('`users`.`group_id`')
-
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_sum]).map(&:score_sum).should == expected.map(&:group_score)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_sum]).map(&:group_id).should == expected.map(&:group_id)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_count]).map(&:score_count).should == expected.map(&:score_count)
     end
 
-    it "calculates correct average" do
+    it "should calculate correct average" do
       expected = Fact.select('`users`.`group_id`, AVG(`facts`.`score`) score_avg').joins(:user).group('`users`.`group_id`')
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_avg]).map(&:score_avg).should == expected.map(&:score_avg)
     end
   end
-
-
 end

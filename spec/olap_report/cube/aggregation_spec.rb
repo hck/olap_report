@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe OlapReport::Cube::Aggregation do
   before :each do
-    Fact.instance_variable_set(:@aggregations, nil)
+    Fact.instance_variable_set(:@aggregations, [])
   end
 
   describe "::aggregation" do
@@ -10,26 +10,41 @@ describe OlapReport::Cube::Aggregation do
       Fact.should respond_to :aggregation
     end
 
-    it "adds aggregation to @aggregations" do
-      Fact.aggregation some: :aggregation
-      Fact.instance_variable_get(:@aggregations).should == [some: :aggregation]
-      Fact.aggregation another: :aggregation, and_one: :more
-      Fact.instance_variable_get(:@aggregations).should == [{some: :aggregation}, {another: :aggregation, and_one: :more}]
+    it "should add aggregation to @aggregations" do
+      Fact.instance_variable_get(:@aggregations).size.should == 0
+
+      Fact.aggregation user: :user_id
+      Fact.instance_variable_get(:@aggregations).size.should == 1
+
+      Fact.aggregation user: :group_id, date: :created_at
+      Fact.instance_variable_get(:@aggregations).size.should == 2
+    end
+
+    it "should create Aggregation::Table object for each aggregation with proper params" do
+      Fact.aggregation user: :user_id
+      aggr = Fact.instance_variable_get(:@aggregations).last
+      aggr.should be_instance_of(OlapReport::Cube::Aggregation::Table)
+      aggr.levels.map{|l| {l.send(:dimension).name => l.name}}.should == [{user: :user_id}]
+
+      Fact.aggregation user: :group_id, date: :created_at
+      aggr = Fact.instance_variable_get(:@aggregations).last
+      aggr.should be_instance_of(OlapReport::Cube::Aggregation::Table)
+      aggr.levels.map{|l| {l.send(:dimension).name => l.name}}.should == [{user: :group_id}, {date: :created_at}]
     end
 
     it "raise an error if same aggregation already exists" do
       expect do
-        Fact.aggregation some: :aggregation
-        Fact.aggregation some: :aggregation
+        Fact.aggregation user: :user_id
+        Fact.aggregation user: :user_id
       end.to raise_error OlapReport::Cube::DuplicateAggregationError
     end
   end
 
   describe "::aggregations" do
-    it "returns aggregations" do
-      Fact.aggregation some: :aggregation
+    it "should return aggregations" do
+      Fact.aggregation user: :user_id
       Fact.aggregations.should be_an(Array)
-      Fact.aggregations.first.should be_a(Hash)
+      Fact.aggregations.first.should be_a(OlapReport::Cube::Aggregation::Table)
     end
   end
 
@@ -39,30 +54,11 @@ describe OlapReport::Cube::Aggregation do
     end
 
     it "should call ::aggregate_table! method for each one of defined aggregations" do
-      FactoryGirl.create_list(:group, 3).each do |g|
-        FactoryGirl.create_list(:user, 10, group: g).each do |u|
-          FactoryGirl.create_list(:fact, 10, user: u)
-        end
-      end
-
-      # Fact.stub(:aggregate_table!).and_return true
-      #Fact.aggregation some: :aggregation
-      #Fact.aggregation another: :aggregation, and_one: :more
+      OlapReport::Cube::Aggregation::Table.any_instance.stub(:aggregate_table!).and_return(true)
       Fact.aggregation user: :group_id
-      # Fact.aggregations.each do |aggr|
-      #   Fact.should_receive(:aggregate_table!).with(aggr).once
-      # end
+      Fact.aggregations.each{|a| a.should_receive(:aggregate_table!)}
+
       Fact.aggregate!
     end
   end
-
-  # describe "::aggregate_table!" do
-  #   it "should call ::column_names" do
-  #     levels = {some: :aggregation}
-  #     Fact.aggregation levels
-  #     Fact.should_receive(:column_names).with(levels).once
-  #     Fact.aggregate_table!(levels)
-  #   end
-  # end
-
 end
