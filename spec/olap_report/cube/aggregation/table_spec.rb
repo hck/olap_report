@@ -1,0 +1,53 @@
+require "spec_helper"
+
+describe OlapReport::Cube::Aggregation::Table do
+  describe "#initialize" do
+    it "should create table if model & levels specified" do
+      table = described_class.new(Fact, user: :group_id)
+      table.should be_instance_of(described_class)
+      table.levels.size.should == 1
+      table.levels.first.should == Fact.dimensions[:user].levels[:group_id]
+    end
+
+    it "should raise error if model not specified" do
+      expect{ described_class.new }.to raise_error(ArgumentError)
+    end
+
+    it "should raise error if levels not specified" do
+      expect{ described_class.new(Fact) }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe "#aggregate_table!" do
+    it "should call #create_table & #fill_with_values" do
+      table = Fact.aggregations.first
+      table.should_receive(:create_table)
+      table.should_receive(:fill_with_values)
+      table.aggregate_table!
+    end
+
+    it "should properly create aggregated table" do
+      FactoryGirl.create_list(:group, 3).each do |g|
+        FactoryGirl.create_list(:user, 10, group: g).each do |u|
+          FactoryGirl.create_list(:fact, 10, user: u)
+        end
+      end
+
+      Fact.aggregations.first.aggregate_table!
+
+      expected = Group.all.each_with_object({}) do |g,o|
+        o[g.category] ||= Hash.new(0)
+        o[g.category][:score_sum] += g.facts.inject(0){|sum,f| sum += f.score}
+        o[g.category][:score_count] += g.facts.size
+      end
+
+      FactByCategory.all.each do |fc|
+        row = expected[fc.category]
+
+        fc.score_sum.should == row[:score_sum]
+        fc.score_count.should == row[:score_count]
+        fc.score_avg.should be_within(0.001).of(row[:score_sum].to_f / row[:score_count])
+      end
+    end
+  end
+end
