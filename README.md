@@ -1,6 +1,6 @@
 # OlapReport
 
-TODO: Write a gem description
+Olap-like queries & aggregations for activerecord models using defined hierarchies & measures
 
 ## Installation
 
@@ -18,7 +18,47 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Define dimensions, measures & aggregations (if needed) in your ActiveRecord model.
+
+    class Fact < ActiveRecord::Base
+      # include OlapReport::Cube module to your ActiveRecord model
+      include OlapReport::Cube
+
+      belongs_to :user
+
+      # define dimensions for your model
+      # dimension <dimension name> do |d|
+      dimension :user do |d|
+        # d.level <column name of level>
+        d.level :user_id
+        d.level :group_id, joins: :user
+        d.level :category, joins: {user: :group}
+      end
+
+      dimension :date do |d|
+        d.level :created_at
+      end
+
+      # define measures that you want to calculate from the facts table
+      # measures_for <measure name>, [<array of functions you want to be used to calculate measures>]
+      measures_for :score, [:avg, :sum]
+
+      # measure <measure name>, <function name, :sum by default>, hash of options
+      measure :score_count, :count, column: :score
+
+      # define table aggregations if needed
+      # aggregation <dimension name> => <level name>
+      aggregation user: :category
+      aggregation user: :group_id, date: :year
+    end
+
+### Use #projection method of your model class to calculate summaries by levels
+
+    Fact.projection(dimensions: {<dimension name> => <level name>, ...}, measures: [<measure name>, <measure_name>, ...])
+
+### Use # aggregate! method of your model class to create aggregation tables for defined aggregations
+
+    Fact.aggregate!
 
 ## Contributing
 
@@ -27,35 +67,3 @@ TODO: Write usage instructions here
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
-
-
-
-retailer
-product_id
-  [product_type_id, product_group_id, product_id]
-date
-  [year, month, day]
-views
-  sum
-
-measure :views, column: :views, function: :sum
-measure :avg_views, column: :views, function: :avg
-
-
-Foo.where...
-   .find
-
-   .foobar(dimensions, measures) # => .foobar(dimensions: {:product_id => :product_group_id, :date => :month], measures: [:views, :avg_views])
-                                 #
-                                 #    ------------------------------------------------
-                                 #    | product_group_id | month | views | avg_views |
-                                 #    ------------------------------------------------
-
-   .dimensions                   # => AR:Relation
-   .measures                     # => AR:Relation
-
-   .where
-
-
-------------------------------------------------------------------------------------------------
-

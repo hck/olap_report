@@ -35,7 +35,7 @@ module OlapReport
 
     def select_column
       if function.is_a?(Proc)
-        model.measure_scope.instance_exec(&function).to_sql
+        measure_scope.instance_exec(&function).to_sql
       else
         "#{function.upcase}(#{model.column_name_with_table(column)})"
       end
