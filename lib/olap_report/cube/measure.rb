@@ -6,8 +6,13 @@ module OlapReport
 
     delegate :measure_scope, to: :model
 
+    ALLOWED_FUNCTIONS = [:avg, :sum, :count]
+
     def initialize(model, name, function=:sum, options={})
-      # @TODO: add functions validation here
+      if !ALLOWED_FUNCTIONS.include?(function) && !function.is_a?(Proc)
+        raise OlapReport::Cube::ProhibitedFunctionError, "Function :#{function} is not allowed to use!"
+      end
+
       @model, @name, @function, @options = model, name, function, options
       @column = options[:column] || name
 

@@ -12,6 +12,7 @@ module OlapReport
       include OlapReport::ActiveRecord::Helpers
     end
 
+    class ProhibitedFunctionError < StandardError; end
     class DuplicateAggregationError < StandardError; end
   end
 end

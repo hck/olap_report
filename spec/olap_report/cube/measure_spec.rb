@@ -35,6 +35,10 @@ describe OlapReport::Cube::Measure do
     end
   end
 
+  it "validates incoming functions" do
+    expect { described_class.new(Fact, :foobar, :bad_function, {}) }.to raise_exception(OlapReport::Cube::ProhibitedFunctionError)
+  end
+
   describe "#==" do
     it "should return true if compared object is a Measure and has the same name, column & function" do
       described_class.new(Fact, :measure_name).should == described_class.new(Fact, :measure_name, :sum)
