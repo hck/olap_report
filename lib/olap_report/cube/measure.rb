@@ -1,9 +1,10 @@
 module OlapReport
   class Cube::Measure
     attr_reader :name, :function, :options, :column
+    ALLOWED_FUNCTIONS = [:avg, :sum, :count]
 
     def initialize(name, function=:sum, options={})
-      # @TODO: add functions validation here
+      raise OlapReport::Cube::ProhibitedFunctionError, "Function :#{function} is not allowed to use!" unless ALLOWED_FUNCTIONS.include?(function)
       @name, @function, @options = name, function, options
       @column = options[:column] || name
     end

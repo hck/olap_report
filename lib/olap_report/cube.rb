@@ -7,6 +7,8 @@ module OlapReport
       base.instance_variable_set(:@dimensions, {})
       base.instance_variable_set(:@measures, {})
     end
+
+    class ProhibitedFunctionError < StandardError; end
   end
 
   module ClassMethods
