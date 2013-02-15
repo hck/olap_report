@@ -16,13 +16,13 @@ module OlapReport
       @group_by || name
     end
 
-    def select_sql(aggregation_table_name=nil)
-      model.column_name_with_table(name, table_name_for_sql(aggregation_table_name))
+    def select_sql
+      model.column_name_with_table(name, table_name_for_sql)
     end
 
-    def group_sql(aggregation_table_name=nil)
+    def group_sql
       if group_by.is_a?(Symbol)
-         model.column_name_with_table(group_by, table_name_for_sql(aggregation_table_name))
+         model.column_name_with_table(group_by, table_name_for_sql)
       else
         group_by
       end
@@ -33,10 +33,8 @@ module OlapReport
     end
 
     private
-    def table_name_for_sql(aggregation_table_name=nil)
-      if aggregation_table_name
-        aggregation_table_name
-      elsif joins
+    def table_name_for_sql
+      if joins
         model.join_table_name(joins)
       else
         model.table_name

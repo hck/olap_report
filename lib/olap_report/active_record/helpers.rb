@@ -1,11 +1,9 @@
 module OlapReport
   module ActiveRecord::Helpers
-    def column_name(name)
-      connection.quote_column_name(name)
-    end
+    delegate :quote_column_name, :quote_table_name, to: :connection
 
     def column_name_with_table(name, table_name=self.table_name)
-      [connection.quote_table_name(table_name), column_name(name)].join('.')
+      [quote_table_name(table_name), quote_column_name(name)].join('.')
     end
 
     def join_table_name(joins)

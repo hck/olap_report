@@ -27,6 +27,18 @@ module OlapReport
       obj.is_a?(self.class) && self.levels == obj.levels
     end
 
+    def projection(msrs)
+      relation = levels.inject(model) do |rel,l|
+        rel.select model.quote_column_name(l.name)
+      end
+
+      relation = msrs.inject(relation) do |rel,m|
+        rel.select model.quote_column_name(m)
+      end
+
+      relation.from table_name
+    end
+
     private
     def level_column_definitions
       levels.each_with_object([]) do |l,acc|

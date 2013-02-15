@@ -56,7 +56,10 @@ describe OlapReport::Cube::Projection do
 
     it "should select data from aggregated table if it was defined for specified dimensions & levels" do
       Fact.aggregate!
-      expected = Fact.select('`facts_by_category`.`category`, `facts_by_category`.`score_count`').from('facts_by_category')
+      expected = Fact.select('`category`, `score_count`').from('facts_by_category')
+
+      #p expected.to_sql
+      #p Fact.projection(dimensions: {user: :category}, measures: [:score_count]).to_sql
       Fact.projection(dimensions: {user: :category}, measures: [:score_count]).should == expected
     end
   end
