@@ -19,6 +19,10 @@ module OlapReport
       fill_with_values
     end
 
+    def table_name
+      @table_name ||= ([model.table_name, 'by'] << levels.map(&:name).sort.join('_and_')).join('_')
+    end
+
     def ==(obj)
       obj.is_a?(self.class) && self.levels == obj.levels
     end
@@ -26,7 +30,7 @@ module OlapReport
     private
     def level_column_definitions
       levels.each_with_object([]) do |l,acc|
-        columns = (l.joins ? model.association_class(l.joins) : self).columns
+        columns = (l.joins ? model.association_class(l.joins) : model).columns
         acc << columns.find{|col| col.name.to_sym == l.name}
       end
     end
@@ -44,10 +48,6 @@ module OlapReport
       level_column_definitions + measure_column_definitions
     end
 
-    def table_name
-      @table_name ||= ([model.table_name, 'by'] << levels.map(&:name).sort.join('_and_')).join('_')
-    end
-
     def create_table
       connection.create_table table_name, id: false, force: true do |t|
         columns.each do |column_obj|
@@ -60,7 +60,9 @@ module OlapReport
         end
       end
 
-      connection.add_index table_name, levels.map(&:name).sort, unique: true
+      index_columns = levels.map(&:name).sort
+      index_name = (["idx"] + index_columns).join('_')
+      connection.add_index table_name, index_columns, unique: true, name: index_name
     end
 
     def fill_with_values
@@ -69,7 +71,7 @@ module OlapReport
         acc
       end
 
-      projection = model.projection(dimensions: dims, measures: measures.keys)
+      projection = model.projection(dimensions: dims, measures: measures.keys, skip_aggregated: true)
       query = "INSERT INTO #{table_name} (#{projection.to_sql})"
       connection.execute query
     end

@@ -33,16 +33,22 @@ module OlapReport
       end
     end
 
-    def select_column
-      if function.is_a?(Proc)
+    def select_column(aggregation_table_name=nil)
+      if aggregation_table_name
+        model.column_name_with_table(name, aggregation_table_name)
+      elsif function.is_a?(Proc)
         measure_scope.instance_exec(&function).to_sql
       else
         "#{function.upcase}(#{model.column_name_with_table(column)})"
       end
     end
 
-    def to_sql
-      [select_column, model.column_name(name)].join(' AS ').strip
+    def to_sql(aggregation_table_name=nil)
+      if aggregation_table_name
+        select_column(aggregation_table_name)
+      else
+        [select_column, model.column_name(name)].join(' AS ').strip
+      end
     end
 
     def ==(obj)

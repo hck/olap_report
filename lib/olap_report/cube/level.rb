@@ -16,22 +16,31 @@ module OlapReport
       @group_by || name
     end
 
-    def select_sql
-      params = joins ? [name, model.join_table_name(joins)] : name
-      model.column_name_with_table(*params)
+    def select_sql(aggregation_table_name=nil)
+      model.column_name_with_table(name, table_name_for_sql(aggregation_table_name))
     end
 
-    def group_sql
+    def group_sql(aggregation_table_name=nil)
       if group_by.is_a?(Symbol)
-         params = joins ? [group_by, model.join_table_name(joins)] : group_by
-         model.column_name_with_table(*params)
-       else
-         group_by
-       end
+         model.column_name_with_table(group_by, table_name_for_sql(aggregation_table_name))
+      else
+        group_by
+      end
     end
 
     def dimension_name
       dimension.name
+    end
+
+    private
+    def table_name_for_sql(aggregation_table_name=nil)
+      if aggregation_table_name
+        aggregation_table_name
+      elsif joins
+        model.join_table_name(joins)
+      else
+        model.table_name
+      end
     end
   end
 end

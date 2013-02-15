@@ -36,10 +36,10 @@ describe OlapReport::Cube::Projection do
       @facts = FactoryGirl.create_list(:fact, 10)
     end
 
-    it "should fetch dimension grouped by self" do
+    it "should fetch dimension grouped by level name" do
       Fact.projection(dimensions: {user: :user_id}).should == Fact.select('`facts`.`user_id`').group('`facts`.`user_id`')
       Fact.projection(dimensions: {user: :group_id}).should == Fact.select('`users`.`group_id`').joins(:user).group('`users`.`group_id`')
-      Fact.projection(dimensions: {user: :category}).should == Fact.select('`groups`.`category`').joins(user: :group).group('`groups`.`category`')
+      Fact.projection(dimensions: {user: :category}, skip_aggregated: true).should == Fact.select('`groups`.`category`').joins(user: :group).group('`groups`.`category`')
     end
 
     it "should fetch specified dimension & measure" do
@@ -52,6 +52,12 @@ describe OlapReport::Cube::Projection do
     it "should calculate correct average" do
       expected = Fact.select('`users`.`group_id`, AVG(`facts`.`score`) score_avg').joins(:user).group('`users`.`group_id`')
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_avg]).map(&:score_avg).should == expected.map(&:score_avg)
+    end
+
+    it "should select data from aggregated table if it was defined for specified dimensions & levels" do
+      Fact.aggregate!
+      expected = Fact.select('`facts_by_category`.`category`, `facts_by_category`.`score_count`').from('facts_by_category')
+      Fact.projection(dimensions: {user: :category}, measures: [:score_count]).should == expected
     end
   end
 end

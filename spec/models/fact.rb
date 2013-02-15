@@ -19,7 +19,7 @@ class Fact < ActiveRecord::Base
   measure :score_count, :count, column: :score
 
   aggregation user: :category
-  aggregation user: :group_id, date: :year
+  aggregation user: :group_id, date: :created_at
 
   def self.prepare_table
     connection.execute("DROP TABLE IF EXISTS #{table_name}")

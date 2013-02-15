@@ -16,6 +16,13 @@ module OlapReport
       def aggregate!
         aggregations.each(&:aggregate_table!)
       end
+
+      def find_aggregation(levels)
+        aggregations.find do |a|
+          levels_def = a.levels.each_with_object({}){|level,acc| acc[level.dimension_name] = level.name}
+          levels_def == levels
+        end
+      end
     end
   end
 end

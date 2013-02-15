@@ -16,6 +16,7 @@ describe OlapReport::Report do
   end
 
   it "returns array of structs as result" do
+    Fact.aggregate! # needed here because of FactoryGirl
     TestReport.new.to_a.first.should be_a(Struct)
   end
 end

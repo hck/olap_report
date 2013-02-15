@@ -26,31 +26,46 @@ module OlapReport
       end
 
       def projection(options)
-        relation = build_relation_for_dimensions(options[:dimensions])
-        build_relation_for_measures options[:measures], relation
+        a_table = find_aggregation(options[:dimensions])
+        aggregated_table_name = (!options[:skip_aggregated] && a_table && a_table.table_name) || nil
+
+        relation = build_relation_for_dimensions(options[:dimensions], self, aggregated_table_name)
+        build_relation_for_measures options[:measures], relation, aggregated_table_name
       end
 
       private
-      def build_relation_for_dimensions(dims, rel=nil)
+      def build_relation_for_dimensions(dims, rel=nil, aggregated_table_name=nil)
         rel ||= self
 
         rel = dims.inject(rel) do |res,(dim,lvl)|
           dimension = dimensions[dim]
           level = dimension.levels[lvl]
-          res = res.select level.select_sql
-          res = res.joins(level.joins) if level.joins
-          res = res.group level.group_sql
+
+          # if aggregated_table_name is not specified, will fetch data from model table
+          res = res.select level.select_sql(aggregated_table_name)
+
+          # join relative tables if no aggregated table passed
+          if !aggregated_table_name && level.joins
+            res = res.joins(level.joins)
+          end
+
+          # group by level if no aggregation table found
+          res = res.group level.group_sql if !aggregated_table_name
+
+          # replace source tables with aggregated table name
+          res = res.from(aggregated_table_name) if aggregated_table_name
+
           res
         end if dims
 
         rel
       end
 
-      def build_relation_for_measures(msrs, rel=nil)
+      def build_relation_for_measures(msrs, rel=nil, aggregated_table_name=nil)
         rel ||= self
 
         rel = msrs.inject(rel) do |res,msr|
-          res = res.select measures[msr].to_sql
+          res = res.select measures[msr].to_sql(aggregated_table_name)
           res
         end if msrs
 

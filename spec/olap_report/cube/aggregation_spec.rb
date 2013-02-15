@@ -1,8 +1,16 @@
 require 'spec_helper'
 
 describe OlapReport::Cube::Aggregation do
-  before :each do
+  before(:all) do
+    @original_aggregations = Fact.aggregations
+  end
+
+  before(:each) do
     Fact.instance_variable_set(:@aggregations, [])
+  end
+
+  after(:each) do
+    Fact.instance_variable_set(:@aggregations, @original_aggregations)
   end
 
   describe "::aggregation" do
