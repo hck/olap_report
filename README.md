@@ -18,7 +18,7 @@ Or install it yourself as:
 
 ## Usage
 
-### Define dimensions, measures & aggregations (if needed) in your ActiveRecord model.
+Define dimensions, measures & aggregations (if needed) in your ActiveRecord model.
 
     class Fact < ActiveRecord::Base
       # include OlapReport::Cube module to your ActiveRecord model
@@ -52,11 +52,11 @@ Or install it yourself as:
       aggregation user: :group_id, date: :year
     end
 
-### Use #projection method of your model class to calculate summaries by levels
+Use #projection method of your model class to calculate summaries by levels
 
     Fact.projection(dimensions: {<dimension name> => <level name>, ...}, measures: [<measure name>, <measure_name>, ...])
 
-### Use # aggregate! method of your model class to create aggregation tables for defined aggregations
+Use # aggregate! method of your model class to create aggregation tables for defined aggregations
 
     Fact.aggregate!
 
