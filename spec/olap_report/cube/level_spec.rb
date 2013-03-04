@@ -29,11 +29,25 @@ describe OlapReport::Cube::Level do
     end
   end
 
-  describe "#build_select" do
+  describe "#column" do
+    it "should return column name if no type specified" do
+      Fact.dimensions[:user].levels[:group_id].column.should == :group_id
+    end
+
+    it "should return proper column name with alias if type specified" do
+      adapter = ['OlapReport::Cube::Level', Fact.connection.adapter_name].join('::').constantize
+
+      Fact.dimensions[:date].levels.values.each do |level|
+        level.column.should == adapter.column_name('`facts`.`created_at`', level.type)
+      end
+    end
+  end
+
+  describe "#select_sql" do
     pending
   end
 
-  describe "#build_group_by" do
+  describe "#group_sql" do
     pending
   end
 end

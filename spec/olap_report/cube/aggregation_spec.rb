@@ -34,10 +34,10 @@ describe OlapReport::Cube::Aggregation do
       aggr.should be_instance_of(OlapReport::Cube::Aggregation::Table)
       aggr.levels.map{|l| {l.send(:dimension).name => l.name}}.should == [{user: :user_id}]
 
-      Fact.aggregation user: :group_id, date: :created_at
+      Fact.aggregation user: :group_id, date: :day
       aggr = Fact.instance_variable_get(:@aggregations).last
       aggr.should be_instance_of(OlapReport::Cube::Aggregation::Table)
-      aggr.levels.map{|l| {l.send(:dimension).name => l.name}}.should == [{user: :group_id}, {date: :created_at}]
+      aggr.levels.map{|l| {l.send(:dimension).name => l.name}}.should == [{user: :group_id}, {date: :day}]
     end
 
     it "raise an error if same aggregation already exists" do

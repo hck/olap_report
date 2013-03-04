@@ -43,7 +43,9 @@ module OlapReport
     def level_column_definitions
       levels.each_with_object([]) do |l,acc|
         columns = (l.joins ? model.association_class(l.joins) : model).columns
-        acc << columns.find{|col| col.name.to_sym == l.name}
+        col = columns.find{|col| col.name.to_sym == l.column_name}
+        col.instance_variable_set(:@name, l.name)
+        acc << col
       end
     end
 
