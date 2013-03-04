@@ -14,9 +14,29 @@ module OlapReport
       end
     end
 
+    # Creates tables with aggregated data and fills them with actual values
     def aggregate_table!
       create_table
       fill_with_values
+    end
+
+    # Updates already existing aggregations with values from new records
+    def update!(start_id=nil)
+      update_values_stmt =  measures.values.each_with_object([]) do |m,acc|
+        stmt = build_update(m)
+        if stmt
+          acc << stmt
+        else
+          # if no statement for measure - aggregate all from scratch
+          aggregate_table! and return
+        end
+      end
+
+      sql = fill_sql do |rel|
+        rel.where("#{model.column_name_with_table(model.primary_key)} > ?", start_id)
+      end
+      update_sql = [sql, "ON DUPLICATE KEY UPDATE", update_values_stmt.join(', ')].join(' ')
+      connection.execute update_sql
     end
 
     def table_name
@@ -79,15 +99,46 @@ module OlapReport
       connection.add_index table_name, index_columns, unique: true, name: index_name
     end
 
-    def fill_with_values
-      dims = levels.inject({}) do |acc,l|
-        acc[l.dimension_name] = l.name
-        acc
-      end
-
+    def fill_sql
+      dims = levels.each_with_object({}){ |l,acc| acc[l.dimension_name] = l.name }
       projection = model.projection(dimensions: dims, measures: measures.keys, skip_aggregated: true)
-      query = "INSERT INTO #{table_name} (#{projection.to_sql})"
-      connection.execute query
+      projection = yield projection if block_given?
+      "INSERT INTO #{model.quote_table_name(table_name)} (#{projection.to_sql})"
+    end
+
+    def fill_with_values
+      connection.execute fill_sql
+    end
+
+    # Build update statements for measures' values
+    #   sum   = sum + new sum
+    #   count = count + new count
+    #   max   = MAX(max, new max)
+    #   min   = MIN(min, new min)
+    #   avg
+    #     if no count or sum measures in current aggregation, recreate aggregated table from scratch
+    #     if count measure exists
+    #       avg = (avg * count + new avg * new count) / (count + new count)
+    #     if sum measure exists
+    #       avg = (sum + new sum) / (sum / avg + new sum / new avg)
+    # @param [OlapReport::Cube::Measure] measure
+    def build_update(measure)
+      case measure.function
+      when :avg
+        base_measure = measures.values.find{|v| [:sum, :count].include?(v.function)}
+        if base_measure
+          case base_measure.function
+          when :sum
+            "#{measure.name} = (#{base_measure.name} + VALUES(#{base_measure.name})) / (#{base_measure.name} / #{measure.name} + VALUES(#{base_measure.name}) / VALUES(#{measure.name}))"
+          when :count
+            "#{measure.name} = (#{measure.name} * #{base_measure.name} + VALUES(#{measure.name}) * VALUES(#{base_measure.name})) / (#{base_measure.name} + VALUES(#{base_measure.name})"
+          end
+        else
+          return false
+        end
+      else
+        '%s = %s + VALUES(%s)' % ([measure.name] * 3)
+      end
     end
   end
 end

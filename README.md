@@ -36,7 +36,9 @@ Define dimensions, measures & aggregations (if needed) in your ActiveRecord mode
       end
 
       dimension :date do |d|
-        d.level :created_at
+        # define layers by date periods
+        # d.dates <column name>, by: <Array of periods (:minute, :hour, :day, :week, :month, :year)>
+        d.dates :created_at, by: [:minute, :hour, :day, :week, :month, :year]
       end
 
       # define measures that you want to calculate from the facts table
