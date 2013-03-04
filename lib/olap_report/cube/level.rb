@@ -27,13 +27,15 @@ module OlapReport
       @group_by || column
     end
 
+    # Returns
     def column
+      field = model.column_name_with_table(@column_name, table_name_for_sql)
+
       if type
         klass = [self.class.name, model.connection.adapter_name].join('::').constantize
-        field = model.column_name_with_table(@column_name, table_name_for_sql)
         klass.column_name(field, type)
       else
-        @column_name
+        field
       end
     end
 
@@ -42,7 +44,7 @@ module OlapReport
       if type
         [column, name].join(' AS ')
       else
-        model.column_name_with_table(column, table_name_for_sql)
+        column
       end
     end
 

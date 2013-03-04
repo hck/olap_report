@@ -8,23 +8,37 @@ module OlapReport
         base.instance_variable_set(:@measures, {})
       end
 
+      # Define dimension for ActiveRecord model
+      # @param [Symbol] name    - dimension name
+      # @param [Hash] options   - optional parameters
       def dimension(name, options = {})
         dimension = OlapReport::Cube::Dimension.new(self, name, options)
         yield dimension if block_given?
         @dimensions[name] = dimension
       end
 
+      # Define measure for ActiveRecord model
+      # @param [Symbol] name     - measure name
+      # @param [Symbol] function - measure function (:sum, :avg, :count, :min, :max)
+      # @param [Hash] options    - optional parameters
       def measure(name, function = :sum, options= {})
         @measure_scope ||= OlapReport::Cube::Measure::Scope.new
         @measures[name] = OlapReport::Cube::Measure.new(self, name, function, options)
       end
 
+      # Define few measures for column at once
+      # @param [Symbol] column   - column name
+      # @param [Array] functions - array of functions
       def measures_for(column, functions)
         functions.each do |function|
           measure "#{column}_#{function}".to_sym, function, column: column
         end
       end
 
+      # Fetches result for specified options (dimensions & measures)
+      # @param [Hash] options - projection options
+      #   :dimensions - dimensions to query in
+      #   :measures   - measures to calculate for specified dimensions
       def projection(options)
         a_table = find_aggregation(options[:dimensions])
 

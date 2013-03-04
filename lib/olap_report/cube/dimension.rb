@@ -16,6 +16,8 @@ module OlapReport
     end
 
     # Defines date-based levels for dimension
+    # @param [Symbol] field - column name for date levels
+    # @param [Hash] options - date periods for levels
     def dates(field, options = {})
       levels = options[:by]
       if levels.present?
