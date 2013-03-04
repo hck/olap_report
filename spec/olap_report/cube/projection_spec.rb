@@ -59,5 +59,15 @@ describe OlapReport::Cube::Projection do
       expected = Fact.select('`category`, `score_count`').from('facts_by_category')
       Fact.projection(dimensions: {user: :category}, measures: [:score_count]).should == expected
     end
+
+    describe "date levels" do
+      it "should fetch dimension grouped by month" do
+        expected = Fact.select("DATE_FORMAT(`facts`.`created_at`, '%Y-%m') AS month").
+          select('`facts`.`user_id`').
+          group("DATE_FORMAT(`facts`.`created_at`, '%Y-%m'), `facts`.`user_id`")
+
+        Fact.projection(dimensions: {date: :month, user: :user_id}).should == expected
+      end
+    end
   end
 end
