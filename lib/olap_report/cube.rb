@@ -3,9 +3,9 @@ module OlapReport
     def self.included(base)
       raise ArgumentError, "#{base.name} should be descendant from ActiveRecord::Base" unless base.ancestors.include?(::ActiveRecord::Base)
 
-      base.extend Cube::ClassMethods
-      base.extend Cube::Aggregation
-      base.extend Cube::Projection
+      base.extend ClassMethods
+      base.extend Aggregation
+      base.extend Projection
     end
 
     module ClassMethods

@@ -35,7 +35,7 @@ module OlapReport
       sql = fill_sql do |rel|
         rel.where("#{model.column_name_with_table(model.primary_key)} > ?", start_id)
       end
-      update_sql = [sql, "ON DUPLICATE KEY UPDATE", update_values_stmt.join(', ')].join(' ')
+      update_sql = [sql, 'ON DUPLICATE KEY UPDATE', update_values_stmt.join(', ')].join(' ')
       connection.execute update_sql
     end
 
@@ -95,7 +95,7 @@ module OlapReport
       end
 
       index_columns = levels.map(&:name).sort
-      index_name = (["idx"] + index_columns).join('_')
+      index_name = (%w|idx| + index_columns).join('_')
       connection.add_index table_name, index_columns, unique: true, name: index_name
     end
 

@@ -15,7 +15,7 @@ module OlapReport
     #   :type   specifies level type (:hour, :day, :week, :month, :year for grouping of date/time based fields)
     # @return [OlapReport::Cube::Level]
     def initialize(dimension, name, options = {})
-      @dimension, @name, @options = dimension, name, options.select{|k,v| [:joins, :group_by, :type].include?(k)}
+      @dimension, @name, @options = dimension, name, options.select{|k,| [:joins, :group_by, :type].include?(k)}
       raise ArgumentError if options[:joins].is_a?(Hash) && options[:joins].size > 1
       @joins, @group_by = options.values_at(:joins, :group_by)
 

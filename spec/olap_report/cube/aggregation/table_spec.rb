@@ -37,7 +37,7 @@ describe OlapReport::Cube::Aggregation::Table do
 
       expected = Group.all.each_with_object({}) do |g,o|
         o[g.category] ||= Hash.new(0)
-        o[g.category][:score_sum] += g.facts.inject(0){|sum,f| sum += f.score}
+        o[g.category][:score_sum] += g.facts.inject(0){|sum,f| sum + f.score}
         o[g.category][:score_count] += g.facts.size
       end
 
