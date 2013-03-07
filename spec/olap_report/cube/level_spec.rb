@@ -25,20 +25,21 @@ describe OlapReport::Cube::Level do
 
     it "should return name by if no group by option provided in initialize" do
       level = described_class.new(dimension, :level)
-      level.group_by.should == '`facts`.`level`'
+      level.group_by.should == level.model.column_name_with_table('level', 'facts')
     end
   end
 
   describe "#column" do
     it "should return column name if no type specified" do
-      Fact.dimensions[:user].levels[:group_id].column.should == '`users`.`group_id`'
+      Fact.dimensions[:user].levels[:group_id].column.should == Fact.column_name_with_table('group_id', 'users')
     end
 
     it "should return proper column name with alias if type specified" do
       adapter = ['OlapReport::Cube::Level', Fact.connection.adapter_name].join('::').constantize
 
       Fact.dimensions[:date].levels.values.each do |level|
-        level.column.should == adapter.column_name('`facts`.`created_at`', level.type)
+        field = Fact.column_name_with_table('created_at')
+        level.column.should == adapter.column_name(field, level.type)
       end
     end
   end

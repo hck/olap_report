@@ -37,36 +37,47 @@ describe OlapReport::Cube::Projection do
     end
 
     it "should fetch dimension grouped by level name" do
-      Fact.projection(dimensions: {user: :user_id}).should == Fact.select('`facts`.`user_id`').group('`facts`.`user_id`')
-      Fact.projection(dimensions: {user: :group_id}).should == Fact.select('`users`.`group_id`').joins(:user).group('`users`.`group_id`')
-      Fact.projection(dimensions: {user: :category}, skip_aggregated: true).should == Fact.select('`groups`.`category`').joins(user: :group).group('`groups`.`category`')
+      fields = {user_id: :facts, group_id: :users, category: :groups}.each_with_object({}) do |(k,v),acc|
+        acc[k] = Fact.column_name_with_table(k,v)
+      end
+
+      Fact.projection(dimensions: {user: :user_id}).should == Fact.select(fields[:user_id]).group(fields[:user_id])
+      Fact.projection(dimensions: {user: :group_id}).should == Fact.select(fields[:group_id]).joins(:user).group(fields[:group_id])
+      Fact.projection(dimensions: {user: :category}, skip_aggregated: true).should == Fact.select(fields[:category]).joins(user: :group).group(fields[:category])
     end
 
     it "should fetch specified dimension & measure" do
-      expected = Fact.select('`users`.`group_id`, SUM(`facts`.`score`) group_score, COUNT(`facts`.`score`) score_count').joins(:user).group('`users`.`group_id`')
+      expected = Fact.select("#{Fact.column_name_with_table('group_id', 'users')}, SUM(#{Fact.column_name_with_table('score')}) group_score, COUNT(#{Fact.column_name_with_table('score')}) score_count").
+        joins(:user).group(Fact.column_name_with_table('group_id', 'users'))
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_sum]).map(&:score_sum).should == expected.map(&:group_score)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_sum]).map(&:group_id).should == expected.map(&:group_id)
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_count]).map(&:score_count).should == expected.map(&:score_count)
     end
 
     it "should calculate correct average" do
-      expected = Fact.select('`users`.`group_id`, AVG(`facts`.`score`) score_avg').joins(:user).group('`users`.`group_id`')
+      expected = Fact.select("#{Fact.column_name_with_table('group_id', 'users')}, AVG(#{Fact.column_name_with_table('score')}) score_avg").
+        joins(:user).group(Fact.column_name_with_table('group_id', 'users'))
       Fact.projection(dimensions: {user: :group_id}, measures: [:score_avg]).map(&:score_avg).should == expected.map(&:score_avg)
     end
 
     it "should select data from aggregated table if it was defined for specified dimensions & levels" do
       Fact.aggregate!
-      expected = Fact.select('`category`, `score_count`').from('facts_by_category')
+      expected = Fact.select("#{Fact.quote_column_name('category')}, #{Fact.quote_column_name('score_count')}").
+        from('facts_by_category')
       Fact.projection(dimensions: {user: :category}, measures: [:score_count]).should == expected
     end
 
     describe "date levels" do
       it "should fetch dimension grouped by month" do
-        expected = Fact.select("DATE_FORMAT(`facts`.`created_at`, '%Y-%m') AS month").
-          select('`facts`.`user_id`').
-          group("DATE_FORMAT(`facts`.`created_at`, '%Y-%m'), `facts`.`user_id`")
+        #expected = Fact.select("DATE_FORMAT(`facts`.`created_at`, '%Y-%m') AS month").
+        #  select('`facts`.`user_id`').
+        #  group("DATE_FORMAT(`facts`.`created_at`, '%Y-%m'), `facts`.`user_id`")
 
-        Fact.projection(dimensions: {date: :month, user: :user_id}).should == expected
+        level = Fact.dimensions[:date].levels[:month]
+        field = Fact.column_name_with_table('created_at')
+        OlapReport::Cube::Level::PostgreSQL.should_receive(:column_name).with(field, level.type).exactly(3).times
+
+        Fact.projection(dimensions: {date: :month, user: :user_id})
       end
     end
   end

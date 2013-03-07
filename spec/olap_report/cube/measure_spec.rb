@@ -52,18 +52,19 @@ describe OlapReport::Cube::Measure do
 
   describe "#select_column" do
     it "should return proper sql select field statement if function specified as Symbol" do
-      described_class.new(Fact, :score, :avg).select_column.should == "AVG(`facts`.`score`)"
+      described_class.new(Fact, :score, :avg).select_column.should == "AVG(#{Fact.column_name_with_table('score')})"
     end
 
     it "should return proper sql select field statement if function specified as Proc" do
-      described_class.new(Fact, :score_calc, ->{ score_sum / score_count }).select_column.should == "SUM(`facts`.`score`) / COUNT(`facts`.`score`)"
+      expected = "SUM(#{Fact.column_name_with_table('score')}) / COUNT(#{Fact.column_name_with_table('score')})"
+      described_class.new(Fact, :score_calc, ->{ score_sum / score_count }).select_column.should == expected
     end
   end
 
   describe "#to_sql" do
     it "should return proper part of sql select statement" do
-      described_class.new(Fact, :score_count, :count, column: :score).to_sql.should == "COUNT(`facts`.`score`) AS `score_count`"
-      described_class.new(Fact, :score, :avg).to_sql.should == "AVG(`facts`.`score`) AS `score`"
+      described_class.new(Fact, :score_count, :count, column: :score).to_sql.should == "COUNT(#{Fact.column_name_with_table('score')}) AS #{Fact.quote_column_name('score_count')}"
+      described_class.new(Fact, :score, :avg).to_sql.should == "AVG(#{Fact.column_name_with_table('score')}) AS #{Fact.quote_column_name('score')}"
     end
   end
 end

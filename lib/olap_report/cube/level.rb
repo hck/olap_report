@@ -70,7 +70,7 @@ module OlapReport
       end
     end
 
-    module Postgres
+    module PostgreSQL
       def self.column_name(field, type)
         case type
         when :minute

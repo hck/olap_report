@@ -11,7 +11,7 @@ MODELS = File.join(File.dirname(__FILE__), 'models')
 Dir["#{MODELS}/**/*.rb"].each { |f| require f }
 
 ActiveRecord::Base.establish_connection(
-  adapter: "mysql2",
+  adapter: "postgresql",
   database: "olap_report_test"
 )
 #ActiveRecord::Base.logger = Logger.new($stdout)

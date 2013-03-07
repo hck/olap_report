@@ -7,7 +7,8 @@ gem 'activerecord', '>= 3.2'
 gem 'activesupport', '>= 3.2'
 
 group :development do
-  gem 'mysql2'
+  #gem 'mysql2'
+  gem 'pg'
 end
 
 group :test do
