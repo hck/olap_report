@@ -19,20 +19,22 @@ describe OlapReport::Cube::Aggregation::Table do
   end
 
   describe "#aggregate_table!" do
-    it "should call #create_table & #fill_with_values" do
-      table = Fact.aggregations.first
-      table.should_receive(:create_table)
-      table.should_receive(:fill_with_values)
-      table.aggregate_table!
-    end
-
-    it "should properly create aggregated table" do
+    before(:each) do
       FactoryGirl.create_list(:group, 3).each do |g|
         FactoryGirl.create_list(:user, 10, group: g).each do |u|
           FactoryGirl.create_list(:fact, 10, user: u)
         end
       end
+    end
 
+    it "should call #create_table & #fill_sql" do
+      table = Fact.aggregations.first
+      Fact.adapter.should_receive(:create_aggregated_table)
+      #table.should_receive(:fill_sql)
+      table.aggregate_table!
+    end
+
+    it "should properly create aggregated table" do
       Fact.aggregations.first.aggregate_table!
 
       expected = Group.all.each_with_object({}) do |g,o|
@@ -84,4 +86,10 @@ describe OlapReport::Cube::Aggregation::Table do
       end
     end
   end
+
+  #it "should test" do
+  #  p FactoryGirl.create_list(:group, 2)
+  #  p '+'*50
+  #  sleep 20
+  #end
 end

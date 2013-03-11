@@ -1,8 +1,7 @@
 FactoryGirl.define do
   factory :group do
-    #name { "group_#{rand(1..3)}" }
-    sequence(:name){ |n| "group_#{n}" }
-    category { "category_#{rand(1..3) }" }
+    category { "category_#{rand(1..3)}" }
+    sequence(:name){|n| "group_#{n}"}
   end
 
   factory :user do

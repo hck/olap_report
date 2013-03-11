@@ -75,7 +75,7 @@ describe OlapReport::Cube::Projection do
 
         level = Fact.dimensions[:date].levels[:month]
         field = Fact.column_name_with_table('created_at')
-        OlapReport::Cube::Level::PostgreSQL.should_receive(:column_name).with(field, level.type).exactly(3).times
+        Fact.adapter.should_receive(:column_name).with(field, level.type).exactly(3).times
 
         Fact.projection(dimensions: {date: :month, user: :user_id})
       end

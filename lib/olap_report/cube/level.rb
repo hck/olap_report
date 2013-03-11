@@ -30,13 +30,7 @@ module OlapReport
     # Returns
     def column
       field = model.column_name_with_table(@column_name, table_name_for_sql)
-
-      if type
-        klass = [self.class.name, model.connection.adapter_name].join('::').constantize
-        klass.column_name(field, type)
-      else
-        field
-      end
+      type ? model.adapter.column_name(field, type) : field
     end
 
     # Returns select part of sql statement for level
@@ -67,44 +61,6 @@ module OlapReport
         model.join_table_name(joins)
       else
         model.table_name
-      end
-    end
-
-    module PostgreSQL
-      def self.column_name(field, type)
-        case type
-        when :minute
-          "date_trunc('minute', #{field})"
-        when :hour
-          "date_trunc('hour', #{field})"
-        when :day
-          "date_trunc('day', #{field})"
-        when :week
-          "date_trunc('week', #{field})"
-        when :month
-          "date_trunc('month', #{field})"
-        when :year
-          "date_trunc('year', #{field})"
-        end
-      end
-    end
-
-    module Mysql2
-      def self.column_name(field, type)
-        case type
-        when :minute
-          "DATE_FORMAT(#{field}, '%Y-%m-%d %H:%i')"
-        when :hour
-          "DATE_FORMAT(#{field}, '%Y-%m-%d %H')"
-        when :day
-          "DATE_FORMAT(#{field}, '%Y-%m-%d')"
-        when :week
-          "DATE_FORMAT(#{field}, '%Y-%U')"
-        when :month
-          "DATE_FORMAT(#{field}, '%Y-%m')"
-        when :year
-          "DATE_FORMAT(#{field}, '%Y')"
-        end
       end
     end
   end

@@ -10,6 +10,10 @@ module OlapReport
 
     module ClassMethods
       include OlapReport::ActiveRecord::Helpers
+
+      def adapter
+        @adapter ||= ['OlapReport::Cube::Adapters', self.connection.adapter_name].join('::').constantize.new(self)
+      end
     end
 
     class ProhibitedFunctionError < StandardError; end

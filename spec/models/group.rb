@@ -1,6 +1,4 @@
 class Group < ActiveRecord::Base
-  include OlapReport::Cube
-
   has_many :users
   has_many :facts, through: :users
 

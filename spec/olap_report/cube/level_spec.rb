@@ -35,11 +35,9 @@ describe OlapReport::Cube::Level do
     end
 
     it "should return proper column name with alias if type specified" do
-      adapter = ['OlapReport::Cube::Level', Fact.connection.adapter_name].join('::').constantize
-
       Fact.dimensions[:date].levels.values.each do |level|
         field = Fact.column_name_with_table('created_at')
-        level.column.should == adapter.column_name(field, level.type)
+        level.column.should == Fact.adapter.column_name(field, level.type)
       end
     end
   end
