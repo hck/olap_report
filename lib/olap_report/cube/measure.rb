@@ -1,24 +1,29 @@
 module OlapReport
   class Cube::Measure
-    attr_reader :model, :name, :function, :options, :column
+    attr_reader :name, :function, :column
 
-    private :model
-
-    delegate :measure_scope, to: :model
+    delegate :adapter, :measures_scope, :column_with_alias, :quote_table_column, to: :@model
 
     ALLOWED_FUNCTIONS = [:avg, :sum, :count]
 
     def initialize(model, name, function=:sum, options={})
+      raise ArgumentError unless model && name
+
       if !ALLOWED_FUNCTIONS.include?(function) && !function.is_a?(Proc)
         raise OlapReport::Cube::ProhibitedFunctionError, "Function :#{function} is not allowed to use!"
       end
 
-      @model, @name, @function, @options = model, name, function, options
+      @model = model
+      @name, @function = name, function
       @column = options[:column] || name
 
-      measure_scope.define_singleton_method name do
-        Statement.new(model.measures[name].select_column)
+      measures_scope.define_singleton_method name do
+        Statement.new(column_sql)
       end
+    end
+
+    def build_relation(relation)
+      relation.select column_with_alias(column_sql, name)
     end
 
     def column_type
@@ -29,26 +34,15 @@ module OlapReport
       when :avg
         :float
       else
-        model.columns.find{|col| col.name.to_sym == column}.type
+        #model.columns.find{|col| col.name.to_sym == column}.type
+        nil
       end
     end
 
-    def select_column
-      if function.is_a?(Proc)
-        measure_scope.instance_exec(&function).to_sql
-      else
-        "#{function.upcase}(#{model.column_name_with_table(column)})"
-      end
-    end
+    private
 
-    def to_sql
-      [select_column, model.quote_column_name(name)].join(' AS ').strip
-    end
-
-    def ==(obj)
-      [:name, :column, :function].inject(obj.class == self.class) do |acc,field|
-        acc && send(field) == obj.send(field)
-      end
+    def column_sql
+      "#{function.upcase}(#{quote_table_column(column)})"
     end
   end
 end

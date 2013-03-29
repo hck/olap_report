@@ -3,22 +3,22 @@ class Fact < ActiveRecord::Base
 
   belongs_to :user
 
-  dimension :user do |d|
-    d.level :user_id
-    d.level :group_id, joins: :user
-    d.level :category, joins: {user: :group}
+  define_dimension :user do
+    level :user_id
+    level :group_id, joins: :user
+    level :category, joins: {user: :group}
   end
 
-  dimension :date do |d|
-    d.dates :created_at, by: [:day, :week, :month, :quoter, :year]
+  define_dimension :date do
+    dates :created_at, by: [:day, :week, :month, :quoter, :year]
   end
 
-  measures_for :score, [:avg, :sum]
+  define_measure :score_avg, :avg, column: :score
+  define_measure :score_sum, :sum, column: :score
+  define_measure :score_count, :count, column: :score
 
-  measure :score_count, :count, column: :score
-
-  aggregation user: :category
-  aggregation user: :group_id, date: :month
+  define_aggregation user: :category
+  define_aggregation user: :group_id, date: :month
 
   def self.prepare_table
     connection.execute("DROP TABLE IF EXISTS #{table_name}")

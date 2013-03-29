@@ -1,5 +1,5 @@
 module OlapReport::Cube::Adapters
-  class PostgreSQL < Base
+  class PostgreSQLAdapter < AbstractAdapter
     def create_aggregated_table(table)
       super
 
@@ -43,10 +43,10 @@ module OlapReport::Cube::Adapters
       end
     end
 
-    def measure_update_sql(measure)
+    def measure_update_sql(measure, measures=[])
       case measure.function
       when :avg
-        base_measure = measures.values.find{|v| [:sum, :count].include?(v.function)}
+        base_measure = measures.find{|v| [:sum, :count].include?(v.function)}
         if base_measure
           case base_measure.function
           when :sum

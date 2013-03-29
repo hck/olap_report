@@ -1,18 +1,19 @@
 module OlapReport
   class Cube::Dimension
-    attr_reader :model, :name, :levels, :options
+    attr_reader :name, :levels, :model
 
-    private :model
-
-    def initialize(model, name, options = {})
-      @model, @name, @options, @levels = model, name, options, {}
+    def initialize(model, name)
+      raise ArgumentError unless model && name
+      @levels = []
+      @name = name
+      @model = model
     end
 
     # Defines level for dimension
     # @param [Symbol] name - level name (in general column name from table)
     # @param [Hash] options - options hash
     def level(name, options = {})
-      @levels[name] = Cube::Level.new(self, name, options)
+      @levels << Cube::Level.new(self, name, options)
     end
 
     # Defines date-based levels for dimension
@@ -25,6 +26,13 @@ module OlapReport
       else
         level field
       end
+    end
+
+    # Finds level by name from dimension
+    # @param [Symbol] level_name
+    # @return [OlapReport::Cube::Level]
+    def [](level_name)
+      levels.find{|l| l.name == level_name}
     end
   end
 end

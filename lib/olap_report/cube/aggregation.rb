@@ -7,7 +7,7 @@ module OlapReport
         base.instance_variable_set(:@aggregations, [])
       end
 
-      def aggregation(levels)
+      def define_aggregation(levels)
         table = Table.new(self, levels)
         raise OlapReport::Cube::DuplicateAggregationError if aggregations.include?(table)
         @aggregations << table
@@ -21,7 +21,7 @@ module OlapReport
         aggregations.each(&:update!)
       end
 
-      def find_aggregation(levels)
+      def aggregation(levels)
         aggregations.find do |a|
           levels_def = a.levels.each_with_object({}){|level,acc| acc[level.dimension_name] = level.name}
           levels_def == levels

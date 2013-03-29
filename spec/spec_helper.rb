@@ -28,8 +28,7 @@ RSpec.configure do |config|
     [Fact, User, Group].each(&:prepare_table)
 
     active_record = DatabaseCleaner[:active_record]
-    active_record.strategy = :truncation
-    active_record.clean_with(:truncation)
+    active_record.strategy = :transaction
   end
 
   config.before(:each) do

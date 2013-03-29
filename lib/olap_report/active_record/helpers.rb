@@ -3,12 +3,16 @@ module OlapReport
     module Helpers
       delegate :quote_column_name, :quote_table_name, to: :connection
 
-      def column_name_with_table(name, table_name=self.table_name)
+      def quote_table_column(name, table_name=self.table_name)
         [quote_table_name(table_name), quote_column_name(name)].join('.')
       end
 
       def join_table_name(joins)
         association_class(joins).table_name
+      end
+
+      def column_with_alias(column, alias_name)
+        [column, quote_column_name(alias_name)].join(' AS ')
       end
 
       def association_class(joins, k=nil)

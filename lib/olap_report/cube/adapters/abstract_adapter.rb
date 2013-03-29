@@ -1,13 +1,18 @@
 module OlapReport::Cube::Adapters
-  class Base
-    attr_reader :model
-
-    delegate :connection, :dimensions, :measures, to: :model
-
-    private :model
+  class AbstractAdapter
+    attr_reader :connection
 
     def initialize(model)
-      @model = model
+      raise ArgumentError unless model
+      @connection = model.connection
+    end
+
+    def method_missing(meth, *args, &block)
+      if @connection.respond_to?(meth)
+        @connection.public_send(meth, *args, &block)
+      else
+        super
+      end
     end
 
     # @param [OlapReport::Cube::Aggregation::Table] table
@@ -40,7 +45,8 @@ module OlapReport::Cube::Adapters
     #     if sum measure exists
     #       avg = (sum + new sum) / (sum / avg + new sum / new avg)
     # @param [OlapReport::Cube::Measure] measure
-    def measure_update_sql(measure)
+    # @param [Array(OlapReport::Cube::Measure)] measures - defined cube measures
+    def measure_update_sql(measure, measures=[])
     end
 
     def update_aggregated_table(query, update_values_sql)

@@ -1,5 +1,5 @@
 module OlapReport::Cube::Adapters
-  class Mysql2 < Base
+  class Mysql2Adapter < AbstractAdapter
     def column_name(field, type)
       case type
       when :minute

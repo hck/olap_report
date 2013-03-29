@@ -27,36 +27,33 @@ Define dimensions, measures & aggregations (if needed) in your ActiveRecord mode
       belongs_to :user
 
       # define dimensions for your model
-      # dimension <dimension name> do |d|
-      dimension :user do |d|
-        # d.level <column name of level>
-        d.level :user_id
-        d.level :group_id, joins: :user
-        d.level :category, joins: {user: :group}
+      # define_dimension <dimension name> do |d|
+      define_dimension :user do
+        level :user_id
+        level :group_id, joins: :user
+        level :category, joins: {user: :group}
       end
 
-      dimension :date do |d|
+      define_dimension :date do
         # define layers by date periods
-        # d.dates <column name>, by: <Array of periods (:minute, :hour, :day, :week, :month, :year)>
-        d.dates :created_at, by: [:minute, :hour, :day, :week, :month, :year]
+        # dates <column name>, by: <Array of periods (:minute, :hour, :day, :week, :month, :year)>
+        dates :created_at, by: [:day, :week, :month, :quoter, :year]
       end
 
-      # define measures that you want to calculate from the facts table
-      # measures_for <measure name>, [<array of functions you want to be used to calculate measures>]
-      measures_for :score, [:avg, :sum]
-
-      # measure <measure name>, <function name, :sum by default>, hash of options
-      measure :score_count, :count, column: :score
+      # define_measure <measure name>, <function name, :sum by default>, hash of options
+      define_measure :score_avg, :avg, column: :score
+      define_measure :score_sum, :sum, column: :score
+      define_measure :score_count, :count, column: :score
 
       # define table aggregations if needed
-      # aggregation <dimension name> => <level name>
-      aggregation user: :category
-      aggregation user: :group_id, date: :year
+      # define_aggregation <dimension name> => <level name>
+      define_aggregation user: :category
+      define_aggregation user: :group_id, date: :month
     end
 
 Use #projection method of your model class to calculate summaries by levels
 
-    Fact.projection(dimensions: {<dimension name> => <level name>, ...}, measures: [<measure name>, <measure_name>, ...])
+    Fact.slice(dimensions: {<dimension name> => <level name>, ...}, measures: [<measure name>, <measure_name>, ...])
 
 Use # aggregate! method of your model class to create aggregation tables for defined aggregations
 

@@ -6,15 +6,15 @@ describe OlapReport::Cube::Aggregation::Table do
       table = described_class.new(Fact, user: :group_id)
       table.should be_instance_of(described_class)
       table.levels.size.should == 1
-      table.levels.first.should == Fact.dimensions[:user].levels[:group_id]
+      table.levels.first.should == Fact.dimension(:user)[:group_id]
     end
 
     it "should raise error if model not specified" do
-      expect{ described_class.new }.to raise_error(ArgumentError)
+      expect{ described_class.new(nil, user: :group_id) }.to raise_error(ArgumentError)
     end
 
     it "should raise error if levels not specified" do
-      expect{ described_class.new(Fact) }.to raise_error(ArgumentError)
+      expect{ described_class.new(Fact, nil) }.to raise_error(ArgumentError)
     end
   end
 
@@ -87,9 +87,4 @@ describe OlapReport::Cube::Aggregation::Table do
     end
   end
 
-  #it "should test" do
-  #  p FactoryGirl.create_list(:group, 2)
-  #  p '+'*50
-  #  sleep 20
-  #end
 end
