@@ -42,8 +42,8 @@ describe OlapReport::Cube do
       end
     end
 
-    it "should return nil if no dimension with specified name exists" do
-      Fact.dimension(:new_dimension).should be_nil
+    it "should raise KeyError if no dimension with specified name exists" do
+      expect { Fact.dimension(:new_dimension) }.to raise_error(KeyError)
     end
   end
 

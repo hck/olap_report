@@ -51,7 +51,7 @@ module OlapReport
       # @param [Symbol] name
       # @return [OlapReport::Cube::Dimension]
       def dimension(name)
-        dimensions.find{|d| d.name == name}
+        dimensions.find{|d| d.name == name} || raise(KeyError, "Dimension #{name} not found")
       end
 
       # Get dimension by name

@@ -24,7 +24,7 @@ describe OlapReport::Cube::Aggregation do
       Fact.define_aggregation user: :user_id
       Fact.instance_variable_get(:@aggregations).size.should == 1
 
-      Fact.define_aggregation user: :group_id, date: :created_at
+      Fact.define_aggregation user: :group_id, date: :month
       Fact.instance_variable_get(:@aggregations).size.should == 2
     end
 

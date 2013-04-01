@@ -49,4 +49,22 @@ describe OlapReport::Cube::QueryMethods do
       end
     end
   end
+
+  describe "::drilldown" do
+    it "should fetch level details down the hierarchy 1 level" do
+      expected = Fact.select('"users"."group_id" AS "group_id", COUNT("facts"."score") AS "score_count"').
+        joins(user: :group).
+        group('"users"."group_id"')
+
+      Fact.drilldown(dimensions: {user: :category}, measures: :score_count).should == expected
+    end
+
+    it "should fetch level details down the hierarchy to the specified level" do
+      expected = Fact.select('"facts"."user_id" AS "user_id", COUNT("facts"."score") AS "score_count"').
+        joins(user: :group).
+        group('"facts"."user_id"')
+
+      Fact.drilldown(dimensions: {user: {category: :user_id}}, measures: :score_count).should == expected
+    end
+  end
 end

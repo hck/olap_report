@@ -32,7 +32,19 @@ module OlapReport
     # @param [Symbol] level_name
     # @return [OlapReport::Cube::Level]
     def [](level_name)
-      levels.find{|l| l.name == level_name}
+      levels.find{|l| l.name == level_name} || raise(KeyError, "Level '#{level_name}' not found for dimension '#{self.name}'")
+    end
+
+    def level_index(level_name)
+      levels.map(&:name).index(level_name)
+    end
+
+    def prev_level(level_name)
+      levels[level_index(level_name) - 1]
+    end
+
+    def next_level(level_name)
+      levels[level_index(level_name) + 1]
     end
   end
 end
