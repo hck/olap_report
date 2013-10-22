@@ -1,5 +1,7 @@
 # OlapReport
 
+[![Code Climate](https://codeclimate.com/github/hck/olap_report.png)](https://codeclimate.com/github/hck/olap_report)
+
 Olap-like queries & aggregations for activerecord models using defined hierarchies & measures
 
 ## Installation
