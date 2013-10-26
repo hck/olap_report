@@ -6,10 +6,8 @@ gemspec
 gem 'activerecord', '>= 3.2'
 gem 'activesupport', '>= 3.2'
 
-group :development do
-  #gem 'mysql2'
-  gem 'pg'
-end
+gem 'pg'
+gem 'mysql2'
 
 group :test do
   gem 'rspec'

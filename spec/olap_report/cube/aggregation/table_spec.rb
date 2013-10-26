@@ -27,10 +27,10 @@ describe OlapReport::Cube::Aggregation::Table do
       end
     end
 
-    it "should call #create_table & #fill_sql" do
+    it "should call #create_table" do
       table = Fact.aggregations.first
-      Fact.adapter.should_receive(:create_aggregated_table)
-      #table.should_receive(:fill_sql)
+      Fact.connection.stub(:execute)
+      expect(Fact.adapter).to receive(:create_aggregated_table)
       table.aggregate_table!
     end
 

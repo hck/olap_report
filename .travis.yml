@@ -1,0 +1,10 @@
+language: ruby
+rvm:
+  - "2.0.0"
+env:
+  - DB_ADAPTER=postgresql
+  - DB_ADAPTER=mysql2
+before_script:
+  - mysql -e 'create database olap_report_test;'
+  - psql -c 'create database olap_report_test;' -U postgres
+script: bundle exec rspec spec
