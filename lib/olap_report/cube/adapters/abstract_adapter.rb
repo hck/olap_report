@@ -20,7 +20,7 @@ module OlapReport::Cube::Adapters
       connection.create_table table.table_name, id: false, force: true do |t|
         table.columns.each do |column_obj|
           options = {}
-          [:default, :limit, :scale, :precision, :null, :primary, :coder].each do |opt|
+          [:default, :limit, :scale, :precision, :null].each do |opt|
             options[opt] = column_obj.public_send(opt)
           end
 
@@ -47,10 +47,11 @@ module OlapReport::Cube::Adapters
     # @param [OlapReport::Cube::Measure] measure
     # @param [Array(OlapReport::Cube::Measure)] measures - defined cube measures
     def measure_update_sql(measure, measures=[])
+      fail NotImplementedError
     end
 
     def update_aggregated_table(query, update_values_sql)
-      connection.execute query
+      connection.execute(query)
     end
   end
 end

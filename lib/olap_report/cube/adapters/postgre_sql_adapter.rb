@@ -46,7 +46,7 @@ module OlapReport::Cube::Adapters
     def measure_update_sql(measure, measures=[])
       case measure.function
       when :avg
-        base_measure = measures.find{|v| [:sum, :count].include?(v.function)}
+        base_measure = measures.find { |v| [:sum, :count].include?(v.function) }
         if base_measure
           case base_measure.function
           when :sum

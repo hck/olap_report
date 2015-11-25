@@ -27,7 +27,7 @@ module OlapReport
     def build_relation(relation)
       relation.select(column_with_alias(column, name)).
         joins(joins).
-        group(@group_by || column)
+        group(column)
     end
 
     private

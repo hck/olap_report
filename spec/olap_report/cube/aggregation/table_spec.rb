@@ -28,7 +28,7 @@ RSpec.describe OlapReport::Cube::Aggregation::Table do
 
     it 'creates aggregated table' do
       table = Fact.aggregations.first
-      expect(Fact.connection).to receive(:execute)
+      allow(Fact.connection).to receive(:execute)
       expect(Fact.adapter).to receive(:create_aggregated_table)
       table.aggregate_table!
     end
@@ -44,7 +44,8 @@ RSpec.describe OlapReport::Cube::Aggregation::Table do
 
       FactByCategory.all.each do |fc|
         row = expected[fc.category]
-        expect([fc.score_sum, fc.score_count, fc.score_avg]).to eq([row[:score_sum], row[:score_count], row[:score_sum].to_f / row[:score_count]])
+        expect([fc.score_sum, fc.score_count]).to eq(row.values_at(:score_sum, :score_count))
+        expect(fc.score_avg).to be_within(0.001).of(row[:score_sum].to_f / row[:score_count])
       end
     end
   end

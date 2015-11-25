@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OlapReport::Cube::Aggregation do
+RSpec.describe OlapReport::Cube::Aggregation do
   before(:all) do
     @original_aggregations = Fact.aggregations
   end
@@ -13,34 +13,28 @@ describe OlapReport::Cube::Aggregation do
     Fact.instance_variable_set(:@aggregations, @original_aggregations)
   end
 
-  describe "::define_aggregation" do
-    it "should respond" do
-      Fact.should respond_to :define_aggregation
+  describe '.define_aggregation' do
+    specify { expect(Fact).to respond_to(:define_aggregation) }
+
+    it 'adds aggregation to @aggregations' do
+      expect {
+        Fact.define_aggregation user: :user_id
+      }.to change { Fact.instance_variable_get(:@aggregations).size }.by(1)
     end
 
-    it "should add aggregation to @aggregations" do
-      Fact.instance_variable_get(:@aggregations).size.should == 0
-
-      Fact.define_aggregation user: :user_id
-      Fact.instance_variable_get(:@aggregations).size.should == 1
-
-      Fact.define_aggregation user: :group_id, date: :month
-      Fact.instance_variable_get(:@aggregations).size.should == 2
-    end
-
-    it "should create Aggregation::Table object for each aggregation with proper params" do
+    it 'creates Aggregation::Table object for each aggregation with proper params' do
       Fact.define_aggregation user: :user_id
       aggr = Fact.instance_variable_get(:@aggregations).last
-      aggr.should be_instance_of(OlapReport::Cube::Aggregation::Table)
-      aggr.levels.map{|l| {l.dimension_name => l.name}}.should == [{user: :user_id}]
+      expect(aggr).to be_instance_of(OlapReport::Cube::Aggregation::Table)
+      expect(aggr.levels.map { |l| { l.dimension_name => l.name } }).to eq([{ user: :user_id }])
 
       Fact.define_aggregation user: :group_id, date: :day
       aggr = Fact.instance_variable_get(:@aggregations).last
-      aggr.should be_instance_of(OlapReport::Cube::Aggregation::Table)
-      aggr.levels.map{|l| {l.dimension_name => l.name}}.should == [{user: :group_id}, {date: :day}]
+      expect(aggr).to be_instance_of(OlapReport::Cube::Aggregation::Table)
+      expect(aggr.levels.map { |l| { l.dimension_name => l.name } }).to eq([{ user: :group_id }, { date: :day }])
     end
 
-    it "raise an error if same aggregation already exists" do
+    it 'raises an error if same aggregation already exists' do
       expect do
         Fact.define_aggregation user: :user_id
         Fact.define_aggregation user: :user_id
@@ -48,23 +42,21 @@ describe OlapReport::Cube::Aggregation do
     end
   end
 
-  describe "::aggregations" do
-    it "should return aggregations" do
+  describe '.aggregations' do
+    it 'returns aggregations' do
       Fact.define_aggregation user: :user_id
-      Fact.aggregations.should be_an(Array)
-      Fact.aggregations.first.should be_a(OlapReport::Cube::Aggregation::Table)
+      expect(Fact.aggregations).to be_an(Array)
+      expect(Fact.aggregations.first).to be_a(OlapReport::Cube::Aggregation::Table)
     end
   end
 
-  describe "::aggregate!" do
-    it "should respond to method" do
-      Fact.should respond_to :aggregate!
-    end
+  describe '::aggregate!' do
+    specify { expect(Fact).to respond_to(:aggregate!) }
 
-    it "should call ::aggregate_table! method for each one of defined aggregations" do
-      OlapReport::Cube::Aggregation::Table.any_instance.stub(:aggregate_table!).and_return(true)
+    it 'calls ::aggregate_table! method for each one of defined aggregations' do
+      allow_any_instance_of(OlapReport::Cube::Aggregation::Table).to receive(:aggregate_table!).and_return(true)
       Fact.define_aggregation user: :group_id
-      Fact.aggregations.each{|a| a.should_receive(:aggregate_table!)}
+      Fact.aggregations.each { |a| expect(a).to receive(:aggregate_table!) }
 
       Fact.aggregate!
     end

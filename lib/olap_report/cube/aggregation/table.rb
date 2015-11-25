@@ -9,7 +9,7 @@ module OlapReport
 
       @model = model
 
-      @levels = levels.each_with_object([]) do |(dim,lvl),acc|
+      @levels = levels.each_with_object([]) do |(dim, lvl), acc|
         acc << dimension(dim)[lvl]
       end
     end
@@ -41,11 +41,11 @@ module OlapReport
     end
 
     def slice(msrs)
-      relation = levels.inject(model) do |rel,l|
+      relation = levels.inject(model) do |rel, l|
         rel.select quote_column_name(l.name)
       end
 
-      relation = msrs.inject(relation) do |rel,m|
+      relation = msrs.inject(relation) do |rel, m|
         rel.select quote_column_name(m)
       end
 
@@ -53,7 +53,7 @@ module OlapReport
     end
 
     def build_update_statements_for_measures
-      measures.each_with_object([]) do |m,acc|
+      measures.each_with_object([]) do |m, acc|
         stmt = adapter.measure_update_sql(m, measures)
         stmt && acc << stmt
       end
@@ -61,26 +61,30 @@ module OlapReport
 
     private
     def level_column_definitions
-      levels.each_with_object([]) do |l,acc|
+      levels.each_with_object([]) do |l, acc|
         columns = (l.joins ? @model.association_class(l.joins) : model).columns
-        col = columns.find{|col| col.name.to_sym == l.column_name}
+        col = columns.find { |col| col.name.to_sym == l.column_name }
         col.instance_variable_set(:@name, l.name)
         acc << col
       end
     end
 
     def measure_column_definitions
-      measures.map do |msr|
-        @model.columns.find{|col| col.name.to_sym == msr.column}.clone.tap do |column|
-          type = msr.column_type
-          column.instance_variable_set(:@name, msr.name)
-          column.instance_variable_set(:@type, type) if type
-        end
+      measures.map do |measure|
+        original_column = @model.columns.find { |col| col.name.to_sym == measure.column }
+
+        cast_type = if measure.column_type
+                      ::ActiveRecord::Type.const_get(measure.column_type.to_s.titleize).new
+                    else
+                      original_column.cast_type
+                    end
+
+        adapter.new_column(measure.name, 0, cast_type)
       end
     end
 
     def fill_sql
-      dims = levels.each_with_object({}){ |l,acc| acc[l.dimension_name] = l.name }
+      dims = levels.each_with_object({}) { |l, acc| acc[l.dimension_name] = l.name }
       slice = @model.slice(dimensions: dims, measures: measures.map(&:name), skip_aggregated: true)
       slice = yield slice if block_given?
 

@@ -8,7 +8,8 @@ require 'olap_report'
 
 Dir[File.join(File.dirname(__FILE__), 'support', '**', '*.rb')].each { |f| require f }
 
-DB_ADAPTER = (ENV['DB_ADAPTER'] || :postgresql).to_sym
+#DB_ADAPTER = (ENV['DB_ADAPTER'] || :postgresql).to_sym
+DB_ADAPTER = (ENV['DB_ADAPTER'] || :mysql2).to_sym
 
 ActiveRecord::Base.establish_connection(
   adapter: DB_ADAPTER,
