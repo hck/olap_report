@@ -1,72 +1,60 @@
-require "spec_helper"
+require 'spec_helper'
 
-describe OlapReport::Cube do
-  it "should raise error if it isn't descendant of ActiveRecord::Base" do
-    expect do
-      class Bar
-        include OlapReport::Cube
-      end
-    end.to raise_error(ArgumentError)
+RSpec.describe OlapReport::Cube do
+  it 'raises error if it isn\'t descendant of ActiveRecord::Base' do
+    expect {
+      Class.new { include OlapReport::Cube }
+    }.to raise_error(ArgumentError)
   end
 
-  it "should respond to dimensions method" do
-    Fact.should respond_to(:dimensions)
-  end
+  specify { expect(Fact).to respond_to(:dimensions) }
+  specify { expect(Fact).to respond_to(:measures) }
 
-  it "should respond to measures method" do
-    Fact.should respond_to(:measures)
-  end
-
-  describe "::adapter" do
-    it "should initialize appropriate adapter for model connection" do
-      Fact.adapter.should be_instance_of(OlapReport::Cube::Adapters::PostgreSQLAdapter)
+  describe '.adapter' do
+    it 'initializes appropriate adapter for model connection' do
+      klass = Object.const_get("OlapReport::Cube::Adapters::#{Fact.connection.adapter_name}Adapter")
+      expect(Fact.adapter).to be_instance_of(klass)
     end
   end
 
-  describe "::define_dimension" do
-    it "should return defined cube" do
-      Fact.dimensions.size.should == 2
+  describe '.define_dimension' do
+    let(:dimension) { Fact.dimension(:user) }
 
-      [:user_id, :group_id, :category].each do |level_name|
-        Fact.dimension(:user)[level_name].should be_instance_of(OlapReport::Cube::Level)
-        Fact.dimension(:user)[level_name].name.should == level_name
-      end
+    specify { expect(Fact.dimensions.size).to eq(2) }
+
+    [:user_id, :group_id, :category].each do |level_name|
+      specify { expect(dimension[level_name]).to be_instance_of(OlapReport::Cube::Level) }
+      specify { expect(dimension[level_name].name).to eq(level_name) }
     end
   end
 
-  describe "::dimension" do
-    it "should return dimension by name" do
-      Fact.dimension(:user).tap do |d|
-        d.should be_instance_of(OlapReport::Cube::Dimension)
-        d.name.should == :user
-      end
-    end
+  describe '.dimension' do
+    let(:dimension) { Fact.dimension(:user) }
 
-    it "should raise KeyError if no dimension with specified name exists" do
+    specify { expect(dimension).to be_instance_of(OlapReport::Cube::Dimension) }
+    specify { expect(dimension.name).to eq(:user) }
+
+    it 'raises KeyError if no dimension with specified name exists' do
       expect { Fact.dimension(:new_dimension) }.to raise_error(KeyError)
     end
   end
 
-  describe "::define_measure" do
-    it "should define valid measure" do
-      Fact.measure(:score_count).tap do |m|
-        m.name.should == :score_count
-        m.column.should ==  :score
-        m.function.should == :count
-      end
-    end
+  describe '.define_measure' do
+    let(:measure) { Fact.measure(:score_count) }
+
+    specify { expect(measure.name).to eq(:score_count) }
+    specify { expect(measure.column).to eq(:score) }
+    specify { expect(measure.function).to eq(:count) }
   end
 
-  describe "::measure" do
-    it "should return measure by name" do
-      Fact.measure(:score_count).tap do |m|
-        m.should be_instance_of OlapReport::Cube::Measure
-        m.name.should == :score_count
-      end
-    end
+  describe '.measure' do
+    let(:measure) { Fact.measure(:score_count) }
 
-    it "should return nil if no measure with specified name exists" do
-      Fact.measure(:new_measure).should be_nil
+    specify { expect(measure).to be_instance_of(OlapReport::Cube::Measure) }
+    specify { expect(measure.name).to eq(:score_count) }
+
+    it 'returns nil if no measure with specified name exists' do
+      expect(Fact.measure(:new_measure)).to be_nil
     end
   end
 end
