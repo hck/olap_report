@@ -1,44 +1,49 @@
-require "spec_helper"
+require 'spec_helper'
 
-describe OlapReport::Cube::Level do
-  let(:dimension){ OlapReport::Cube::Dimension.new(Fact, :dimension_name) }
+RSpec.describe OlapReport::Cube::Level do
+  let(:dimension) { OlapReport::Cube::Dimension.new(Fact, :dimension_name) }
 
   describe "#initialize" do
-    it "should create level if dimension & name specified" do
-      described_class.new(dimension, :level).should be_instance_of(described_class)
+    it 'creates level if dimension & name specified' do
+      expect(described_class.new(dimension, :level)).to be_instance_of(described_class)
     end
 
-    it "should raise exception if dimension is not provided" do
+    it 'raises exception if dimension is not provided' do
       expect { described_class.new(nil) }.to raise_error(ArgumentError)
     end
 
-    it "should raise exception if name is not provided" do
+    it 'raises exception if name is not provided' do
       expect { described_class.new(dimension, nil) }.to raise_error(ArgumentError)
     end
   end
 
-  describe "#build_relation" do
-    it "should add select to relation" do
+  describe '#build_relation' do
+    let(:connection) { ActiveRecord::Base.connection }
+
+    it 'adds select to relation' do
       level = Fact.dimension(:user)[:group_id]
-      level.build_relation(Fact).select_values.should == ['"users"."group_id" AS "group_id"']
+      expected_select = [
+        "#{connection.quote_table_name('users')}.#{connection.quote_column_name('group_id')}",
+        connection.quote_column_name('group_id')
+      ].join(' AS ')
+      expect(level.build_relation(Fact).select_values).to eq([expected_select])
     end
 
-    it "should add joins to relation" do
+    it 'adds joins to relation' do
       level = Fact.dimension(:user)[:category]
-      level.build_relation(Fact).joins_values.should == [{user: :group}]
+      expect(level.build_relation(Fact).joins_values).to eq([user: :group])
     end
 
-    it "should add group_by to relation" do
+    it 'adds group_by to relation' do
       level = Fact.dimension(:user)[:category]
-      level.build_relation(Fact).group_values.should == ['"groups"."category"']
+      expected_group = "#{connection.quote_table_name('groups')}.#{connection.quote_column_name('category')}"
+      expect(level.build_relation(Fact).group_values).to eq([expected_group])
     end
 
-    it "should add select by date range to relation" do
-      pending
+    xit 'adds select by date range to relation' do
     end
 
-    it "should add group_by by date range to relation" do
-      pending
+    xit 'adds group_by by date range to relation' do
     end
   end
 end

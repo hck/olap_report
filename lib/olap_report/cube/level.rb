@@ -5,12 +5,12 @@ module OlapReport
     delegate :adapter, :column_with_alias, :quote_table_column, :join_table_name, :table_name, to: :@model
 
     # New level instance initialization
-    # @param [OlapReport::Cube::Dimension] dimension
-    # @param [Symbol] name - level name
-    # @param [Hash] options - hash containing :column, :joins, :type
-    #   :column overrides column name, that is usually taken from level name
-    #   :joins  specifies joined relations
-    #   :type   specifies level type (:hour, :day, :week, :month, :year for grouping of date/time based fields)
+    # @param [OlapReport::Cube::Dimension] dimension Instance of dimension
+    # @param [Symbol] name Level name
+    # @param [Hash] options Additional options
+    # @option options [Symbol, String] :column Overrides column name, that is usually taken from level name
+    # @option options [Hash] :joins Specifies joined relations
+    # @option options [Symbol] :type Specifies level type (:hour, :day, :week, :month, :year for grouping of date/time based fields)
     # @return instance of OlapReport::Cube::Level
     def initialize(dimension, name, options = {})
       raise ArgumentError unless dimension && name
