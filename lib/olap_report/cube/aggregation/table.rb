@@ -16,7 +16,7 @@ module OlapReport
 
     # Creates tables with aggregated data and fills them with actual values
     def aggregate_table!
-      adapter.create_aggregated_table self
+      adapter.create_aggregated_table(self)
       connection.execute fill_sql
     end
 

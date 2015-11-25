@@ -3,7 +3,7 @@ module OlapReport::Cube::Adapters
     def create_aggregated_table(table)
       super
 
-      keys_condition = table.levels.map{|l| "#{l.name} = NEW.#{l.name}"}.join(' AND ')
+      keys_condition = table.levels.map { |l| "#{l.name} = NEW.#{l.name}" }.join(' AND ')
       measures_sql = table.build_update_statements_for_measures
 
       connection.execute <<-SQL
