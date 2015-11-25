@@ -1,3 +1,4 @@
+# @TODO needs refactoring
 module OlapReport
   class Cube::Measure
     attr_reader :name, :function, :column
